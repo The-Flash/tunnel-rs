@@ -26,10 +26,10 @@ impl TryFrom<&ArgMatches> for HttpArgs {
 
 impl HttpArgs {
     pub fn bind_addr(&self) -> String {
-        format!("{:?}:{:?}", "localhost", self.port)
+        format!("{}:{}", "127.0.0.1", self.port)
     }
 
     pub fn agent_bind_addr(&self) -> String {
-        format!("{:?}:{:?}", "localhost", self.agent_port)
+        format!("{}:{}", "127.0.0.1", self.agent_port)
     }
 }

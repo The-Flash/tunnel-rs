@@ -1,5 +1,5 @@
 use clap::ArgMatches;
-use tracing::{info};
+use tracing::{error, info};
 use tokio::net::{TcpListener, TcpStream};
 
 use crate::{cli::args::HttpArgs, error::CliError};
@@ -12,13 +12,17 @@ pub async fn run(matches: &ArgMatches) -> Result<(), CliError> {
     let http_args = args.clone();
     loop {
         match listener.accept().await {
-            Ok((mut socket, addr)) => {
-                info!("New client connected {addr}");
+            Ok((mut socket, _addr)) => {
                 tokio::spawn(async move {
-                    handle_connection(&mut socket, http_args).await.unwrap();
+                    if let Err(e) = handle_connection(&mut socket, http_args).await {
+                        error!("failed to handle connection: {}", e);
+                    }
                 });
             },
-            Err(_e) => break
+            Err(e) => {
+                error!("{e}");
+                break;
+            }
         }
     }
     Ok(())
