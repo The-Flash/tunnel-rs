@@ -2,7 +2,7 @@ use clap::ArgMatches;
 
 use crate::error::CliError;
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub struct HttpArgs {
     pub port: u16,
     pub agent_port: u16
@@ -21,5 +21,15 @@ impl TryFrom<&ArgMatches> for HttpArgs {
            port: *port,
            agent_port: *agent_port
        }) 
+    }
+}
+
+impl HttpArgs {
+    pub fn bind_addr(&self) -> String {
+        format!("{:?}:{:?}", "localhost", self.port)
+    }
+
+    pub fn agent_bind_addr(&self) -> String {
+        format!("{:?}:{:?}", "localhost", self.agent_port)
     }
 }

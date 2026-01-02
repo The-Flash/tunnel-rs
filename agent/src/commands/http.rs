@@ -8,13 +8,14 @@ pub async fn run(matches: &ArgMatches) -> Result<(), CliError> {
     let args: HttpArgs = matches.try_into()?;
     info!("Starting tunnel on port {:?}...", args.port);
     info!("Agent is running on port {:?}...", args.agent_port);
-    let listener = TcpListener::bind(format!("127.0.0.1:{:?}", args.agent_port)).await?;
+    let listener = TcpListener::bind(args.agent_bind_addr()).await?;
+    let http_args = args.clone();
     loop {
         match listener.accept().await {
             Ok((mut socket, addr)) => {
                 info!("New client connected {addr}");
                 tokio::spawn(async move {
-                    handle_connection(&mut socket, args.port).await.unwrap();
+                    handle_connection(&mut socket, http_args).await.unwrap();
                 });
             },
             Err(_e) => break
@@ -23,8 +24,8 @@ pub async fn run(matches: &ArgMatches) -> Result<(), CliError> {
     Ok(())
 }
 
-async fn handle_connection(stream: &mut TcpStream, port: u16) -> Result<(), std::io::Error> {
-    let mut client_stream = TcpStream::connect(format!("127.0.0.1:{:?}", port)).await?;
+async fn handle_connection(stream: &mut TcpStream, http_args: HttpArgs) -> Result<(), std::io::Error> {
+    let mut client_stream = TcpStream::connect(http_args.bind_addr()).await?;
     tokio::io::copy_bidirectional(stream, &mut client_stream).await?;
     Ok(())
 }
