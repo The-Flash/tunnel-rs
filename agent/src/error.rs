@@ -6,5 +6,14 @@ pub enum CliError {
     RequiredArgument(&'static str), 
 
     #[error("Port conflict detected")]
-    ConflictingPorts
+    ConflictingPorts,
+
+    #[error("IO error: {0}")]
+    Io(std::io::Error)
+}
+
+impl From<std::io::Error> for CliError {
+    fn from(value: std::io::Error) -> Self {
+       Self::Io(value) 
+    }
 }

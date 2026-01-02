@@ -1,11 +1,30 @@
 use clap::ArgMatches;
-use tracing::info;
+use tracing::{info};
+use tokio::net::{TcpListener, TcpStream};
 
 use crate::{cli::args::HttpArgs, error::CliError};
 
-pub fn run(matches: &ArgMatches) -> Result<(), CliError> {
+pub async fn run(matches: &ArgMatches) -> Result<(), CliError> {
     let args: HttpArgs = matches.try_into()?;
     info!("Starting tunnel on port {:?}...", args.port);
     info!("Agent is running on port {:?}...", args.agent_port);
+    let listener = TcpListener::bind(format!("127.0.0.1:{:?}", args.agent_port)).await?;
+    loop {
+        match listener.accept().await {
+            Ok((mut socket, addr)) => {
+                info!("New client connected {addr}");
+                tokio::spawn(async move {
+                    handle_connection(&mut socket, args.port).await.unwrap();
+                });
+            },
+            Err(_e) => break
+        }
+    }
+    Ok(())
+}
+
+async fn handle_connection(stream: &mut TcpStream, port: u16) -> Result<(), std::io::Error> {
+    let mut client_stream = TcpStream::connect(format!("127.0.0.1:{:?}", port)).await?;
+    tokio::io::copy_bidirectional(stream, &mut client_stream).await?;
     Ok(())
 }

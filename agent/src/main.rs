@@ -11,7 +11,7 @@ async fn main() {
 
     let matches = cli::build().get_matches();
 
-    if let Err(e) = commands::dispatch(matches) {
+    if let Err(e) = commands::dispatch(matches).await {
         error!("{e}");
         std::process::exit(1);
     }

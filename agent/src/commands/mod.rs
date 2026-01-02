@@ -4,9 +4,9 @@ use crate::error::CliError;
 
 mod http;
 
-pub fn dispatch(matches: ArgMatches) -> Result<(), CliError> {
+pub async fn dispatch(matches: ArgMatches) -> Result<(), CliError> {
     match matches.subcommand() {
-        Some(("http", sub)) => http::run(sub),
+        Some(("http", sub)) => http::run(sub).await,
         _ => unreachable!()
     }
 }
