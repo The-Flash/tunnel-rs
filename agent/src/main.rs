@@ -5,7 +5,8 @@ mod commands;
 
 use tracing::error;
 
-fn main() {
+#[tokio::main(flavor="current_thread")]
+async fn main() {
     config::tracing::init();
 
     let matches = cli::build().get_matches();
